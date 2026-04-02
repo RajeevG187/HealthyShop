@@ -49,6 +49,10 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs microphone access for speech recognition and voice agent features</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan product ingredients</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photo library access to select product images</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app uses on-device speech recognition to transcribe your voice</string>
 	<key>RCTNewArchEnabled</key>
