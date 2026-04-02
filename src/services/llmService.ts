@@ -44,18 +44,28 @@ class LLMService {
    */
   async analyzeIngredients(ingredients: string[]): Promise<AnalysisResult> {
     try {
+      console.log('====================================');
+      console.log('LLM Service: Starting analysis...');
+      console.log('Ingredients to analyze:', ingredients);
+      console.log('====================================');
+
       // Check if model is loaded
       const isLoaded = await RunAnywhere.isModelLoaded();
+      console.log('Model loaded status:', isLoaded);
+
       if (!isLoaded) {
+        console.warn('====================================');
         console.warn('LLM not available, using rule-based analysis');
+        console.warn('====================================');
         return ruleBasedAnalysis(ingredients);
       }
 
       // Create prompt
       const prompt = this.createPrompt(ingredients);
+      console.log('Created prompt:', prompt);
 
-      console.log('Analyzing ingredients with LLM...');
-      
+      console.log('Calling LLM generate...');
+
       // Generate response
       const result = await RunAnywhere.generate(prompt, {
         maxTokens: 500,
@@ -63,23 +73,39 @@ class LLMService {
         systemPrompt: SYSTEM_PROMPT,
       });
 
-      console.log('LLM response received:', result.text.substring(0, 100) + '...');
+      console.log('====================================');
+      console.log('LLM response received');
+      console.log('Tokens used:', result.tokensUsed);
+      console.log('Latency:', result.latencyMs, 'ms');
+      console.log('Response text:', result.text);
+      console.log('====================================');
 
       // Parse JSON response
       const analysis = this.parseResponse(result.text, ingredients);
 
       // Add confidence score based on LLM metrics
       const confidence = this.calculateConfidence(result);
-      
+
+      console.log('====================================');
+      console.log('Analysis complete!');
+      console.log('Health rating:', analysis.health_rating);
+      console.log('Category:', analysis.rating_category);
+      console.log('Confidence:', confidence);
+      console.log('====================================');
+
       return {
         ...analysis,
         confidence,
       };
-
     } catch (error) {
-      console.error('LLM analysis error:', error);
+      console.error('====================================');
+      console.error('LLM analysis error occurred:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      console.error('====================================');
       console.log('Falling back to rule-based analysis');
-      
+
       // Fallback to rule-based system
       return ruleBasedAnalysis(ingredients);
     }
@@ -90,7 +116,7 @@ class LLMService {
    */
   private createPrompt(ingredients: string[]): string {
     const ingredientList = ingredients.join(', ');
-    
+
     return `Analyze the following food ingredients and provide a health assessment:
 
 Ingredients: ${ingredientList}
@@ -103,13 +129,19 @@ Respond with ONLY the JSON object, no additional text.`;
    */
   private parseResponse(responseText: string, originalIngredients: string[]): AnalysisResult {
     try {
+      console.log('Parsing LLM response...');
+
       // Extract JSON from response (handle cases where LLM adds extra text)
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error('No JSON found in response text');
         throw new Error('No JSON found in response');
       }
 
+      console.log('JSON extracted:', jsonMatch[0]);
+
       const parsed = JSON.parse(jsonMatch[0]);
+      console.log('JSON parsed successfully');
 
       // Validate and normalize the response
       return {
@@ -128,9 +160,12 @@ Respond with ONLY the JSON object, no additional text.`;
         summary: parsed.summary || 'Analysis completed.',
         confidence: 0.9, // High confidence from LLM
       };
-
     } catch (error) {
-      console.error('Parse response error:', error);
+      console.error('====================================');
+      console.error('Parse response error:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('====================================');
       throw new Error('Failed to parse LLM response');
     }
   }
@@ -163,7 +198,7 @@ Respond with ONLY the JSON object, no additional text.`;
 
     // Adjust based on token count (longer = more detailed = higher confidence)
     if (result.tokensUsed > 300) confidence += 0.05;
-    
+
     // Adjust based on latency (faster might indicate cached/template response)
     if (result.latencyMs > 2000) confidence += 0.05;
 
@@ -193,13 +228,14 @@ Respond with ONLY the JSON object, no additional text.`;
         temperature: 0.2,
       });
 
-      const parsed = JSON.parse(result.text.match(/\{.*\}/)?.[0] || '{"score": 5, "category": "Moderate"}');
-      
+      const parsed = JSON.parse(
+        result.text.match(/\{.*\}/)?.[0] || '{"score": 5, "category": "Moderate"}'
+      );
+
       return {
         score: this.normalizeRating(parsed.score),
         category: parsed.category || 'Moderate',
       };
-
     } catch (error) {
       console.error('Quick analyze error:', error);
       return { score: 5.0, category: 'Moderate' };

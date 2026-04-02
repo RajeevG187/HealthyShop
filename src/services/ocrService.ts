@@ -34,13 +34,20 @@ class OCRService {
     }
 
     try {
-      console.log('Processing image with ML Kit:', imageUri);
+      console.log('====================================');
+      console.log('Starting OCR processing...');
+      console.log('Image URI:', imageUri);
+      console.log('====================================');
 
       // Use ML Kit for text recognition
       const result = await TextRecognition.recognize(imageUri);
       const text = result.text;
 
+      console.log('Raw OCR text extracted:', text);
+      console.log('Text length:', text?.length || 0);
+
       if (!text || text.trim().length === 0) {
+        console.error('ERROR: No text found in image');
         return {
           text: '',
           confidence: 0,
@@ -53,6 +60,7 @@ class OCRService {
       let blockCount = 0;
 
       if (result.blocks && result.blocks.length > 0) {
+        console.log('OCR blocks found:', result.blocks.length);
         result.blocks.forEach((block: any) => {
           if (block.confidence !== undefined) {
             totalConfidence += block.confidence;
@@ -62,30 +70,39 @@ class OCRService {
       }
 
       const averageConfidence = blockCount > 0 ? totalConfidence / blockCount : 0.7;
+      console.log('Average OCR confidence:', averageConfidence);
 
       // Clean the extracted text
       const cleanedText = cleanOCRText(text);
+      console.log('Cleaned text:', cleanedText);
 
       // Validate that it looks like ingredients
-      if (!looksLikeIngredients(cleanedText)) {
-        return {
-          text: cleanedText,
-          confidence: averageConfidence * 0.5,
-          error: 'Text does not appear to be an ingredient list. Please try again.',
-        };
+      const isValidIngredients = looksLikeIngredients(cleanedText);
+      console.log('Looks like ingredients?', isValidIngredients);
+
+      if (!isValidIngredients) {
+        console.warn('WARNING: Text does not look like ingredients, but proceeding anyway');
+        console.log('Text preview:', cleanedText.substring(0, 200));
+        // Don't return error - let user proceed with analysis
       }
 
-      console.log('OCR Success:', {
-        textLength: cleanedText.length,
-        confidence: averageConfidence,
-      });
+      console.log('====================================');
+      console.log('OCR Success!');
+      console.log('Text length:', cleanedText.length);
+      console.log('Confidence:', averageConfidence);
+      console.log('====================================');
 
       return {
         text: cleanedText,
         confidence: averageConfidence,
       };
     } catch (error) {
-      console.error('OCR Error:', error);
+      console.error('====================================');
+      console.error('OCR ERROR occurred:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      console.error('====================================');
       return {
         text: '',
         confidence: 0,
@@ -259,14 +276,15 @@ class OCRService {
    */
   async takePhoto(): Promise<string | null> {
     try {
+      console.log('Requesting camera permission...');
       // Request permission first
       const hasPermission = await this.requestCameraPermission();
       if (!hasPermission) {
-        console.log('Camera permission denied');
+        console.log('Camera permission denied by user');
         return null;
       }
 
-      console.log('Launching camera...');
+      console.log('Camera permission granted, launching camera...');
       const response = await launchCamera({
         mediaType: 'photo',
         includeBase64: false,
@@ -275,9 +293,16 @@ class OCRService {
         cameraType: 'back',
       });
 
-      return this.handleImagePickerResponse(response);
+      const uri = this.handleImagePickerResponse(response);
+      console.log('Camera response processed, URI:', uri);
+      return uri;
     } catch (error) {
-      console.error('Take photo error:', error);
+      console.error('====================================');
+      console.error('Take photo error:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      console.error('====================================');
       Alert.alert('Error', 'Failed to open camera. Please try again.');
       return null;
     }
@@ -288,14 +313,15 @@ class OCRService {
    */
   async pickImage(): Promise<string | null> {
     try {
+      console.log('Requesting gallery permission...');
       // Request permission first
       const hasPermission = await this.requestMediaLibraryPermission();
       if (!hasPermission) {
-        console.log('Gallery permission denied');
+        console.log('Gallery permission denied by user');
         return null;
       }
 
-      console.log('Launching image library...');
+      console.log('Gallery permission granted, launching image library...');
       const response = await launchImageLibrary({
         mediaType: 'photo',
         includeBase64: false,
@@ -303,9 +329,16 @@ class OCRService {
         selectionLimit: 1,
       });
 
-      return this.handleImagePickerResponse(response);
+      const uri = this.handleImagePickerResponse(response);
+      console.log('Gallery response processed, URI:', uri);
+      return uri;
     } catch (error) {
-      console.error('Pick image error:', error);
+      console.error('====================================');
+      console.error('Pick image error:');
+      console.error('Error type:', error?.constructor?.name);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'N/A');
+      console.error('====================================');
       Alert.alert('Error', 'Failed to open gallery. Please try again.');
       return null;
     }

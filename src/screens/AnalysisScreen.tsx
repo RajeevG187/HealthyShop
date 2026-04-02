@@ -3,7 +3,7 @@
  * Shows OCR results and performs ingredient analysis
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,18 +17,13 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../constants/theme';
 import { useAppStore } from '../store/appStore';
 import { llmService } from '../services/llmService';
-import { extractIngredients } from '../utils/textCleaner';
+import { extractIngredientsWithLLM } from '../utils/ingredientExtraction';
 import { LoadingOverlay } from '../components/LoadingOverlay';
 
 export const AnalysisScreen: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    ocrResult,
-    setAnalysisResult,
-    setIsAnalyzing,
-    isAnalyzing,
-    setError,
-  } = useAppStore();
+  const { ocrResult, setAnalysisResult, setIsAnalyzing, isAnalyzing, setError } = useAppStore();
+  const [extractedIngredients, setExtractedIngredients] = useState<string[]>([]);
 
   useEffect(() => {
     if (ocrResult && ocrResult.text) {
@@ -42,27 +37,39 @@ export const AnalysisScreen: React.FC = () => {
       return;
     }
 
+    console.log('====================================');
+    console.log('Starting ingredient extraction and analysis...');
+    console.log('OCR text:', ocrResult.text);
+    console.log('====================================');
+
     setIsAnalyzing(true);
     try {
-      // Extract ingredients
-      const ingredients = extractIngredients(ocrResult.text);
-      
-      if (ingredients.length === 0) {
-        throw new Error('No ingredients could be extracted from the text');
-      }
+      // Extract ingredients using LLM or fallback
+      const ingredients = await extractIngredientsWithLLM(ocrResult.text);
+      setExtractedIngredients(ingredients);
 
       console.log('Extracted ingredients:', ingredients);
+      console.log('Number of ingredients:', ingredients.length);
 
-      // Analyze with LLM
+      if (ingredients.length === 0) {
+        console.error('No ingredients extracted from text');
+        throw new Error(
+          'Could not extract ingredients. Please try with a clearer image of the ingredient list.'
+        );
+      }
+
+      console.log('Starting health analysis...');
+      // Analyze with LLM or rule-based
       const analysis = await llmService.analyzeIngredients(ingredients);
-      
+
+      console.log('Analysis complete');
       setAnalysisResult(analysis);
 
+      console.log('Navigating to Result screen...');
       // Navigate to results
       setTimeout(() => {
         (navigation as any).navigate('Result');
       }, 500);
-
     } catch (error) {
       console.error('Analysis error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Analysis failed';
@@ -74,15 +81,10 @@ export const AnalysisScreen: React.FC = () => {
     }
   };
 
-  const ingredients = ocrResult ? extractIngredients(ocrResult.text) : [];
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => (navigation as any).goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => (navigation as any).goBack()}>
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Extracted Text</Text>
@@ -94,10 +96,7 @@ export const AnalysisScreen: React.FC = () => {
           <View style={styles.confidenceContainer}>
             <View style={styles.confidenceBar}>
               <View
-                style={[
-                  styles.confidenceFill,
-                  { width: `${(ocrResult?.confidence || 0) * 100}%` },
-                ]}
+                style={[styles.confidenceFill, { width: `${(ocrResult?.confidence || 0) * 100}%` }]}
               />
             </View>
             <Text style={styles.confidenceText}>
@@ -113,14 +112,18 @@ export const AnalysisScreen: React.FC = () => {
 
         <View style={[styles.card, Shadows.md]}>
           <Text style={styles.cardTitle}>
-            Ingredients ({ingredients.length})
+            Ingredients ({extractedIngredients.length || 'Extracting...'})
           </Text>
-          {ingredients.map((ingredient, index) => (
-            <View key={index} style={styles.ingredientItem}>
-              <Text style={styles.ingredientNumber}>{index + 1}.</Text>
-              <Text style={styles.ingredientText}>{ingredient}</Text>
-            </View>
-          ))}
+          {extractedIngredients.length > 0 ? (
+            extractedIngredients.map((ingredient: string, index: number) => (
+              <View key={index} style={styles.ingredientItem}>
+                <Text style={styles.ingredientNumber}>{index + 1}.</Text>
+                <Text style={styles.ingredientText}>{ingredient}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.rawText}>Extracting ingredients...</Text>
+          )}
         </View>
 
         <View style={styles.infoBox}>
@@ -131,10 +134,7 @@ export const AnalysisScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      <LoadingOverlay
-        visible={isAnalyzing}
-        message="Analyzing ingredients..."
-      />
+      <LoadingOverlay visible={isAnalyzing} message="Analyzing ingredients..." />
     </SafeAreaView>
   );
 };

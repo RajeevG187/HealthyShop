@@ -1,6 +1,60 @@
 // Harmful ingredient database for offline detection
 import { HarmfulIngredient } from '../types';
 
+/**
+ * Comprehensive Ingredient Database
+ *
+ * This database contains information about common food additives and ingredients.
+ *
+ * Categories:
+ * - HIGH SEVERITY: Ingredients with potential serious health risks
+ * - MEDIUM SEVERITY: Ingredients that may cause reactions in some people
+ * - LOW SEVERITY: Generally safe but should be consumed in moderation
+ *
+ * Examples from the database:
+ *
+ * MSG (Monosodium Glutamate) - Medium Severity
+ * - A flavor enhancer that delivers umami and boosts savory notes
+ * - Found in: instant noodles, snacks, seasoning blends
+ *
+ * Vitamin A Palmitate - Beneficial
+ * - Added to improve nutritional value for vision and immune health
+ * - Found in: fortified milk, margarine, breakfast cereals
+ *
+ * Ethyl Maltol - Medium Severity
+ * - A flavor enhancer with warm, caramel-like aroma
+ * - Found in: baked goods, candies, flavored drinks
+ *
+ * Glycine - Low Severity
+ * - An amino acid that balances flavor and provides mild sweetness
+ * - Found in: ready-to-drink beverages, sauces, processed foods
+ *
+ * Citric Acid - Low Severity
+ * - Naturally found in citrus; used as acid regulator and flavor brightener
+ * - Found in: packaged drinks, candies, jellies
+ *
+ * Sodium Benzoate - Medium Severity
+ * - A preservative that prevents microbial growth
+ * - Found in: soft drinks, sauces, dressings
+ *
+ * Ascorbic Acid (Vitamin C) - Low Severity/Beneficial
+ * - An antioxidant that prevents oxidation and maintains freshness
+ * - Found in: fruit juices, cut fruit, baked goods
+ *
+ * Aspartame - High Severity
+ * - A low-calorie artificial sweetener used in diet products
+ * - Found in: diet beverages, sugar-free candies, health products
+ *
+ * Sodium Nitrite - High Severity
+ * - A preservative that keeps cured meats pink and safe
+ * - Found in: sausages, corned beef, ham
+ *
+ * Natural & Synthetic Colorants - Medium Severity
+ * - Curcumin: natural yellow pigment from turmeric (beneficial)
+ * - Caramel: natural brown color (generally safe)
+ * - Tartrazine: bright yellow synthetic color (may cause reactions)
+ */
+
 export const HARMFUL_INGREDIENTS: HarmfulIngredient[] = [
   // High severity
   {
@@ -17,15 +71,22 @@ export const HARMFUL_INGREDIENTS: HarmfulIngredient[] = [
   },
   {
     name: 'Artificial Sweeteners',
-    aliases: ['aspartame', 'sucralose', 'saccharin', 'acesulfame potassium', 'E951', 'E950'],
+    aliases: ['sucralose', 'saccharin', 'acesulfame potassium', 'E950'],
     severity: 'high',
     description: 'May affect gut health and metabolism',
+  },
+  {
+    name: 'Aspartame',
+    aliases: ['E951', 'equal', 'nutrasweet'],
+    severity: 'high',
+    description:
+      'Low-calorie artificial sweetener used in diet products; may cause sensitivity reactions',
   },
   {
     name: 'Sodium Nitrite',
     aliases: ['E250', 'sodium nitrate', 'E251'],
     severity: 'high',
-    description: 'May form carcinogenic compounds',
+    description: 'Preservative in cured meats; may form carcinogenic compounds',
   },
   {
     name: 'BHA/BHT',
@@ -33,25 +94,43 @@ export const HARMFUL_INGREDIENTS: HarmfulIngredient[] = [
     severity: 'high',
     description: 'Possible carcinogen and hormone disruptor',
   },
-  
+
   // Medium severity
   {
     name: 'MSG',
-    aliases: ['monosodium glutamate', 'E621', 'hydrolyzed protein', 'yeast extract'],
+    aliases: [
+      'monosodium glutamate',
+      'E621',
+      'hydrolyzed protein',
+      'yeast extract',
+      'glutamic acid',
+    ],
     severity: 'medium',
-    description: 'May cause headaches and sensitivity reactions',
+    description:
+      'Flavor enhancer that delivers umami; may cause headaches and sensitivity reactions in some people',
   },
   {
     name: 'Artificial Colors',
-    aliases: ['tartrazine', 'E102', 'sunset yellow', 'E110', 'red 40', 'yellow 5', 'blue 1'],
+    aliases: [
+      'tartrazine',
+      'E102',
+      'sunset yellow',
+      'E110',
+      'red 40',
+      'yellow 5',
+      'blue 1',
+      'curcumin synthetic',
+      'caramel color synthetic',
+    ],
     severity: 'medium',
-    description: 'Linked to hyperactivity in children',
+    description: 'Synthetic colorants used for visual appeal; linked to hyperactivity in children',
   },
   {
     name: 'Sodium Benzoate',
     aliases: ['E211', 'benzoic acid', 'E210'],
     severity: 'medium',
-    description: 'May damage DNA when combined with vitamin C',
+    description:
+      'Preservative that prevents microbial growth; may damage DNA when combined with vitamin C',
   },
   {
     name: 'Potassium Sorbate',
@@ -65,8 +144,34 @@ export const HARMFUL_INGREDIENTS: HarmfulIngredient[] = [
     severity: 'medium',
     description: 'May cause digestive inflammation',
   },
-  
+  {
+    name: 'Ethyl Maltol',
+    aliases: ['E637'],
+    severity: 'medium',
+    description:
+      'Flavor enhancer with caramel-like aroma; generally safe but adds no nutritional value',
+  },
+
   // Low severity (watch out for quantity)
+  {
+    name: 'Citric Acid',
+    aliases: ['E330'],
+    severity: 'low',
+    description:
+      'Naturally found in citrus; used as acid regulator and flavor brightener; generally safe in moderation',
+  },
+  {
+    name: 'Ascorbic Acid',
+    aliases: ['vitamin c', 'E300'],
+    severity: 'low',
+    description: 'Antioxidant that prevents oxidation; beneficial in appropriate amounts',
+  },
+  {
+    name: 'Glycine',
+    aliases: ['aminoacetic acid'],
+    severity: 'low',
+    description: 'Amino acid that balances flavor and provides mild sweetness; generally safe',
+  },
   {
     name: 'Palm Oil',
     aliases: ['palmitate', 'palm kernel oil', 'vegetable oil'],
@@ -89,19 +194,55 @@ export const HARMFUL_INGREDIENTS: HarmfulIngredient[] = [
 
 // Common healthy ingredients to recognize
 export const HEALTHY_INGREDIENTS = [
-  'whole wheat', 'whole grain', 'oats', 'quinoa', 'brown rice',
-  'protein', 'whey', 'casein', 'egg white',
-  'olive oil', 'coconut oil', 'avocado oil',
-  'fiber', 'vitamin', 'mineral', 'probiotic',
-  'natural flavor', 'sea salt', 'spices',
-  'almonds', 'nuts', 'seeds', 'flaxseed', 'chia',
+  'whole wheat',
+  'whole grain',
+  'oats',
+  'quinoa',
+  'brown rice',
+  'protein',
+  'whey',
+  'casein',
+  'egg white',
+  'olive oil',
+  'coconut oil',
+  'avocado oil',
+  'fiber',
+  'vitamin',
+  'mineral',
+  'probiotic',
+  'natural flavor',
+  'sea salt',
+  'spices',
+  'almonds',
+  'nuts',
+  'seeds',
+  'flaxseed',
+  'chia',
+  'vitamin a palmitate',
+  'ascorbic acid',
+  'vitamin c',
+  'vitamin e',
+  'vitamin d',
+  'calcium',
+  'iron',
+  'turmeric',
+  'curcumin',
+  'ginger',
+  'garlic',
 ];
 
 // Ingredient patterns that indicate processing
 export const PROCESSING_INDICATORS = [
-  'modified', 'enriched', 'fortified', 'hydrogenated',
-  'artificial', 'synthetic', 'emulsifier', 'stabilizer',
-  'preservative', 'flavor enhancer',
+  'modified',
+  'enriched',
+  'fortified',
+  'hydrogenated',
+  'artificial',
+  'synthetic',
+  'emulsifier',
+  'stabilizer',
+  'preservative',
+  'flavor enhancer',
 ];
 
 /**
@@ -109,13 +250,13 @@ export const PROCESSING_INDICATORS = [
  */
 export function checkIngredient(ingredient: string): HarmfulIngredient | null {
   const normalizedIngredient = ingredient.toLowerCase().trim();
-  
+
   for (const harmful of HARMFUL_INGREDIENTS) {
     // Check main name
     if (normalizedIngredient.includes(harmful.name.toLowerCase())) {
       return harmful;
     }
-    
+
     // Check aliases
     for (const alias of harmful.aliases) {
       if (normalizedIngredient.includes(alias.toLowerCase())) {
@@ -123,7 +264,7 @@ export function checkIngredient(ingredient: string): HarmfulIngredient | null {
       }
     }
   }
-  
+
   return null;
 }
 
@@ -132,7 +273,7 @@ export function checkIngredient(ingredient: string): HarmfulIngredient | null {
  */
 export function isHealthyIngredient(ingredient: string): boolean {
   const normalized = ingredient.toLowerCase();
-  return HEALTHY_INGREDIENTS.some(healthy => normalized.includes(healthy));
+  return HEALTHY_INGREDIENTS.some((healthy) => normalized.includes(healthy));
 }
 
 /**
@@ -140,7 +281,7 @@ export function isHealthyIngredient(ingredient: string): boolean {
  */
 export function isHighlyProcessed(ingredient: string): boolean {
   const normalized = ingredient.toLowerCase();
-  return PROCESSING_INDICATORS.some(indicator => normalized.includes(indicator));
+  return PROCESSING_INDICATORS.some((indicator) => normalized.includes(indicator));
 }
 
 /**
@@ -149,7 +290,7 @@ export function isHighlyProcessed(ingredient: string): boolean {
 export function findHarmfulIngredients(ingredients: string[]): HarmfulIngredient[] {
   const found: HarmfulIngredient[] = [];
   const seenNames = new Set<string>();
-  
+
   for (const ingredient of ingredients) {
     const harmful = checkIngredient(ingredient);
     if (harmful && !seenNames.has(harmful.name)) {
@@ -157,6 +298,6 @@ export function findHarmfulIngredients(ingredients: string[]): HarmfulIngredient
       seenNames.add(harmful.name);
     }
   }
-  
+
   return found;
 }
