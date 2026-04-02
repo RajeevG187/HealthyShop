@@ -6,7 +6,7 @@
 
 A privacy-first mobile application that helps users make healthier food choices by analyzing ingredient labels using **on-device AI** and **optical character recognition (OCR)**. Simply scan a product label, and HealthyShop instantly identifies harmful ingredients, calculates health scores, and provides nutritional insights—all without sending data to external servers.
 
-![HealthyShop Demo](https://via.placeholder.com/800x400?text=HealthyShop+App+Demo)
+![HealthyShop Demo](https://drive.google.com/file/d/1WliL8tlLgNS1S0z0PxQIFo126JGAUKQq/view?usp=sharing)
 
 ---
 

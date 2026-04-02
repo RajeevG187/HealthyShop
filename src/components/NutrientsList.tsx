@@ -16,18 +16,37 @@ interface NutrientItemProps {
   label: string;
   value: string;
   icon: string;
+  isGoodWhenHigh?: boolean; // True for protein, false for sugar/sodium/fats
 }
 
-const NutrientItem: React.FC<NutrientItemProps> = ({ label, value, icon }) => {
+const NutrientItem: React.FC<NutrientItemProps> = ({
+  label,
+  value,
+  icon,
+  isGoodWhenHigh = false,
+}) => {
   const getValueColor = (val: string) => {
     const normalized = val.toLowerCase();
+
+    // For nutrients where high is good (like Protein)
+    if (isGoodWhenHigh) {
+      if (normalized === 'very high' || normalized === 'high') {
+        return Colors.success; // Green for high protein
+      }
+      if (normalized === 'medium') {
+        return Colors.warning; // Yellow for medium
+      }
+      return Colors.danger; // Red for low protein
+    }
+
+    // For nutrients where high is bad (like Sugar, Sodium, Fats)
     if (normalized === 'very high' || normalized === 'high') {
-      return Colors.danger;
+      return Colors.danger; // Red for high sugar/sodium/fats
     }
     if (normalized === 'medium') {
-      return Colors.warning;
+      return Colors.warning; // Yellow for medium
     }
-    return Colors.success;
+    return Colors.success; // Green for low sugar/sodium/fats
   };
 
   return (
@@ -45,13 +64,13 @@ export const NutrientsList: React.FC<NutrientsListProps> = ({ nutrients }) => {
   return (
     <View style={[styles.container, Shadows.md]}>
       <Text style={styles.title}>Nutrient Profile</Text>
-      
-      <NutrientItem label="Protein" value={nutrients.protein} icon="💪" />
-      <NutrientItem label="Fats" value={nutrients.fats} icon="🥑" />
-      <NutrientItem label="Carbs" value={nutrients.carbs} icon="🌾" />
-      <NutrientItem label="Sugar" value={nutrients.sugar} icon="🍬" />
-      <NutrientItem label="Sodium" value={nutrients.sodium} icon="🧂" />
-      <NutrientItem label="Calories" value={nutrients.calories} icon="🔥" />
+
+      <NutrientItem label="Protein" value={nutrients.protein} icon="💪" isGoodWhenHigh={true} />
+      <NutrientItem label="Fats" value={nutrients.fats} icon="🥑" isGoodWhenHigh={false} />
+      <NutrientItem label="Carbs" value={nutrients.carbs} icon="🌾" isGoodWhenHigh={false} />
+      <NutrientItem label="Sugar" value={nutrients.sugar} icon="🍬" isGoodWhenHigh={false} />
+      <NutrientItem label="Sodium" value={nutrients.sodium} icon="🧂" isGoodWhenHigh={false} />
+      <NutrientItem label="Calories" value={nutrients.calories} icon="🔥" isGoodWhenHigh={false} />
     </View>
   );
 };

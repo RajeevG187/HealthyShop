@@ -142,7 +142,11 @@ Respond with ONLY the JSON object, no additional text.`;
 
       const parsed = JSON.parse(jsonMatch[0]);
       console.log('JSON parsed successfully');
-
+      // if (parsed.nutrients?.protein === 'Low') {
+      //   parsed.nutrients.protein = 'High';
+      // } else if (parsed.nutrients?.protein === 'High') {
+      //   parsed.nutrients.protein = 'Low';
+      // }
       // Validate and normalize the response
       return {
         ingredients: parsed.ingredients || originalIngredients,
